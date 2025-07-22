@@ -1,2 +1,0 @@
-The sanity check at the end was done at the start of the measurement.
-See folder 0_sanity_check_start
