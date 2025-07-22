@@ -1,0 +1,66 @@
+%% duallayer2_gerd_00_config.m
+%
+%
+%
+%
+% Author: Melanie, Summer 2025
+
+MAINPATH = 'R:\Ferris-Lab\mklapprott\eegl\';                                                        % path where all the config files should be saved
+cd(MAINPATH)
+
+%% parameters for initial check of the data
+
+check.HPF = 0.3;                                                                                    % initial cut-off for high-pass filter
+check.LPF = 30;                                                                                     % initial cut-off for low-pass filter
+check.fullRankAvRefBool = false;                                                                    % allow rank loss of data
+check.std_threshold = 3;                                                                            % cut-off for bad channel detection
+check.autoChRejMethod = [num2str(check.std_threshold),'std'];                                       % how many stds as a criterion
+check.cleaningMethod = '';                                                                          % pre-allocate cleaning method
+check.NOCHANS = {'AccX','AccY','AccZ','GyroX','GyroY','GyroZ', 'QuatW','QuatX','QuatY','QuatZ'};    % channels to be ignored (xdf style)
+
+save('check.mat', 'check');
+
+
+%% parameters for iCanClean algorithm
+
+params.windowLength = 1;                                                                            % Duration (s) of the sliding window to be cleaned
+params.rerefX = 'no';                                                                               % don't re-reference X (EEG data)
+params.filtX = 'no';
+params.filtXtype = 'no';                                                                            % no filter on X
+params.filtXfreq = [];                                                                              % Frequency range for filtering X
+params.rerefY = 'no';                                                                               % don't re-reference Y (reference data)
+params.filtYtype = 'no';                                                                            % no filter on Y
+params.filtYfreq = [];                                                                              % Frequency range for filtering Y
+params.calcCCAonWholeData = 0;                                                                      % perform CCA in sliding windows (adaptive cleaning)
+params.useExternCalibData = 0;                                                                      % don't use external calibration dataset for noise model
+params.indExternCalibData = 1;                                                                      % Index of cal. dataset ignored if useExternCalibData = 0
+params.statsWindow = 2;                                                                             % Duration (s) of the window used to compute CCA stats
+params.cleanWindow = 1;                                                                             % Duration (s) of the data cleaned per step
+params.RTBool = 0;                                                                                  % offline processing
+params.rhoSqThres_source = 0.800;                                                                   % components above this R^2 are removed
+params.cleanXwith = 'Y';                                                                            % Clean EEG (X) using reference data (Y)
+params.cleanYwith = 'no';                                                                           % Do not clean reference data Y
+params.visualizeResults = 0;                                                                        % don't show GUI visualization of results
+params.giveCleaningUpdates = 1;                                                                     % Print cleaning status to console
+params.plotStatsOn = 1;                                                                             % Plot VAF and correlation stats during cleaning
+params.useBoundary = 0;                                                                             % Ignore 'boundary' events in data process through them)
+params.plotVAF = 0;                                                                                 % don't plot Variance Accounted For (VAF) maps
+params.stepSize = 0.5;                                                                              % Step size (s) between cleaning iterations
+params.extraTime_pre = (2 - params.windowLength)/2;                                                 % Extra time added before cleaning window to match statsWindow length
+params.extraTime_post = params.extraTime_pre;                                                       % Extra time added after cleaning window
+
+save('params.mat', 'params');
+
+
+%% parameters for epoching & erp calculation
+
+erp.REJ = 5;                                                                                        % threshold for epoch rejection
+erp.FROM = -0.2;                                                                                    % epoch start (s)
+erp.TO = 0.8;                                                                                       % epoch end (s)
+erp.N1_st = 100;                                                                                    % start of N1 window
+erp.N1_sp = 200;                                                                                    % end of N1 window
+erp.P3_st = 250;                                                                                    % start of P3 window
+erp.P3_sp = 550;                                                                                    % end of P3 window
+
+save('erp.mat', 'erp');
+

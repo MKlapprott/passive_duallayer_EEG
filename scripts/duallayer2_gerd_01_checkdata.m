@@ -1,0 +1,173 @@
+%% duallayer2_gerd_01_checkdata.m
+%
+%
+%
+%
+% Author: Melanie, 2025
+
+%% Preparations
+
+close all; clear all; clc;                                                                          % start with fresh workspace
+
+% set paths
+
+MAINPATH = 'R:\Ferris-Lab\mklapprott\eegl\';                                                        % adjust this path to your local environment!!!
+cd(MAINPATH)
+
+PATHIN = [MAINPATH, 'rawdata\gerd\'];                                                               % path to raw data (changed from task-Flanker!!!)
+PATHOUT = [MAINPATH, 'derivatives\gerd\']; 
+
+if ~isfolder(PATHOUT)                                                                               % if the path doesn't exist yet, create it
+    mkdir(PATHOUT)
+end
+
+CHECKPATH = [PATHOUT, 'duallayer2_gerd_01_first-Check\'];
+if ~isfolder(CHECKPATH)                                                                             % if the path doesn't exist yet, create it
+    mkdir(CHECKPATH)
+end
+
+CHECKPLOTS = [CHECKPATH, 'plots\'];
+if ~isfolder(CHECKPLOTS)                                                                            % if the path doesn't exist yet, create it
+    mkdir(CHECKPLOTS)
+end
+
+file_paths = dir(fullfile(PATHIN));                                                                 % get access to all folder names
+file_paths(1:3) = [];                                                                               % first two entries in the struct are empty, 3rd only test
+file_paths(18:end) = [];                                                                            % get rid of stuff in the folder I dont need
+
+
+% load parameters
+
+measurement_info = readtable([MAINPATH, 'measurement_info.xlsx']);                                  % load initial info table
+load('check.mat');
+
+[ALLEEG, EEG, CURRENTSET, ALLCOM] = eeglab;                                                         % start EEGLAB
+
+%% start data check
+
+for meas = 1:length(file_paths)
+
+    PATHINSUB = [PATHIN, file_paths(meas).name, '\'];
+    cd(PATHINSUB)
+
+    % collect initial information & store them in structure --------------------------------------
+
+    MEASUREMENTS(meas).ID = string(measurement_info.cond(meas));
+
+    % load data & start quality check ------------------------------------------------------------
+    
+    files = dir(fullfile(PATHINSUB, '*.xdf'));                                                      % get access to data sets
+    file_name = files.name;
+
+    EEG = pop_loadxdf([PATHINSUB, file_name], 'streamtype', 'EEG', 'exclude_markerstreams', {});    % load data
+    EEG = pop_chanedit(EEG, 'lookup',[MAINPATH, 'DualLayer64.elp']);
+    EEG.setname = strjoin(['dualLayer2_', num2str(meas), '_', measurement_info{meas, 'cond'}],'');   % give data set a name
+
+    EEG = pop_select( EEG, 'nochannel', check.NOCHANS);                                             % select relevant channels
+    nchan = EEG.nbchan;                                                                             % update number of channels   
+    
+    [EEG.chanlocs(32:end).type] = deal('Noise');                                                    % assign the Noise label to the Noise electrodes
+
+    EEG = pop_eegfiltnew(EEG, 'locutoff', check.HPF);                                               % use HPF to remove drift
+    EEG = pop_eegfiltnew(EEG, 'hicutoff', check.LPF);                                               % use HPF to smoothe data
+
+    [ALLEEG, EEG, CURRENTSET] = eeg_store( ALLEEG, EEG, 0 );                                        % store in ALLEEG
+
+    EEG.urchanlocs = EEG.chanlocs;                                                                  % save original chanlocs for later
+    
+    % illustrate bad channels --------------------------------------------------------------------
+    
+    figure;
+
+    rms = std(EEG.data(1:size(EEG.data(1:31,:), 1),:), [],2);                                       % calc standard deviation across channels
+    thres = mean(mean(rms)+3*std(rms));                                                             % define threshold for bad channel marking (take higher threshold??)
+    ind = find(rms>thres | rms<1);                                                                  % find bits of data exceeding thres & flat channels
+    
+    % create subplots, so that there is only one plot for each subject
+    %set(0, 'CurrentFigure', f1)                                                                    % call first figure
+    subplot(3, 1, 1);                                                                               % plot topo of channel stds
+    topoplot(rms, EEG.chanlocs(1:31));                                                              % topography of rms
+    colorbar;
+    title('Topography');
+
+    % plot lines of channel stds with threshold
+    subplot(3, 1, 2);
+    plot(rms, 'k');                                                                                 % channels
+    hold on;
+    plot(repmat(thres,1,size(EEG.data(1:31,:), 1)), 'r');                                           % threshold
+    xlabel('Channels'); ylabel('rms')
+    plottitle = ['RMS per Channel'];
+    title(plottitle, 'Interpreter', 'none');
+    axis tight
+
+    % then, additionally, plot rms over time (image plot) for each subject and each run
+    % cut windows, calculate stds, plot in image
+
+    sec = 10;
+    LeWin = EEG.srate*sec;                                                                          % define window length
+    timeVec = 0 : 1/EEG.srate : sec-1/EEG.srate;                                                    % define time vector
+    idx_loop = 1:LeWin:size(EEG.data(1:31,:),2);                                                    % check how loop index will look like
+    rms_t = zeros(size(EEG.data(1:31,:), 1), length(idx_loop));                                     % pre-allocate matrix of rms over time
+    row_count = 1;                                                                                  % set counter
+
+    for idx = 1: LeWin: size(EEG.data(1:31,:),2)-LeWin                                              % go through data in steps of 10s
+        
+        signal = EEG.data(1:size(EEG.data(1:31,:), 1),idx:idx+(LeWin-1));                           % get short extract from data
+        rms_t(:, row_count) = std(signal, [],2);                                                    % calc standard deviation across channels
+        row_count = row_count +1;                                                                   % update counter
+
+    end
+
+    % create colormap for channel stds over time
+    subplot(3, 1, 3)                                                        
+    imagesc(rms_t);
+    colorbar;
+    colormap(turbo);
+    xlabel('Time (10s windows)'); ylabel('Channels');
+
+    sgt = sgtitle(['Channel RMS for condition: ', measurement_info{meas, 'cond'}], 'Interpreter', 'none'); % title for whole plot
+    drawnow                                                                                         % print for inspection
+    
+    % rereferencing - channel rejection loop -----------------------------------------------------
+    
+    fprintf('==== %s 1.) REREFERENCING & REJECTION ====\n',EEG.setname)
+    EEG = rerefC2CN2NExt2Ext_func(EEG,check.fullRankAvRefBool);                                     %Re-ref EEG, EMG, and Noise to themselves
+    [EEG, Total_rej_1] = autoRejCh_func_CL(EEG,check.std_threshold);                                %Reject bad channels, 1st iteration
+    
+    fprintf('==== %s 3.) REREFERENCING & REJECTION pt.2 ====\n',EEG.setname)
+    EEG = rerefC2CN2NExt2Ext_func(EEG,check.fullRankAvRefBool);                                     %Re-ref again
+    [EEG, Total_rej_2] = autoRejCh_func_CL(EEG,check.std_threshold);                                % reject bad channels again and re-ref again
+    
+    fprintf('==== %s 5.) REREFERENCING pt.3 ====\n',EEG.setname)
+    EEG = rerefC2CN2NExt2Ext_func(EEG,check.fullRankAvRefBool);                                     % re-ref
+       
+    cleaningMethod = horzcat(check.cleaningMethod,check.autoChRejMethod);                           % define cleaning method
+
+    EEG_chans = find(strcmpi('EEG',{EEG.chanlocs.type}));                                           % redefine scalp channels
+    Noise_chans = find(strcmpi('Noise',{EEG.chanlocs.type}));                                       % redefine noise channels
+    
+    MEASUREMENTS(meas).rej_chans = [Total_rej_1, Total_rej_2];                                      % save number rejected channels
+    MEASUREMENTS(meas).rej_chans_expl = 'EEG, EMG, Noise chans (round1), EEG, EMG, Noise chans (round 2)';
+        
+    % save data set & Figure ---------------------------------------------------------------------   
+    
+    SUBCHECKPATH = [CHECKPATH, file_paths(meas).name, '\'];                                         % create path for subject
+    
+    if ~isfolder(SUBCHECKPATH)
+        mkdir(SUBCHECKPATH);
+    end
+
+    cd(SUBCHECKPATH);
+    EEG = pop_saveset(EEG, 'filename', [EEG.setname, '_preproc-firstCheck_eeg'], 'filepath', SUBCHECKPATH);    % save data set
+    cd(CHECKPLOTS);
+    saveas(gca, [file_paths(meas).name, '-ChanRMS.png']);                                           % save plot
+    close;
+    
+end                                                                                                 % end loop across measurements
+
+disp('Dont forget about the struct!!!')                                                             % reminder :)
+
+%% save information
+
+save([MAINPATH,'MEAS'],'MEASUREMENTS');
+
