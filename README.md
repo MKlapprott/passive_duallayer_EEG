@@ -19,6 +19,7 @@ passive_duallayer_EEG/
 ├── scripts/
 │ ├── participants/ # Analysis scripts for the mobile EEG experiment
 │ ├── phantom_head/ # Analysis scripts for the phantom-head experiment
+│ ├── statistical_analysis/ # Analysis scripts for the statistical evaluation of both experiments
 │ └── functions/ # Supporting MATLAB functions
 ├── resources/ # Electrode and head-model resources
 ├── participant_info.xlsx 
