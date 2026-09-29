@@ -22,8 +22,8 @@ passive_duallayer_EEG/
 │ ├── statistical_analysis/ # Analysis scripts for the statistical evaluation of both experiments
 │ └── functions/ # Supporting MATLAB functions
 ├── resources/ # Electrode and head-model resources
-├── participant_info.xlsx 
-├── measurement_info.xlsx 
+├── participant_info.xlsx
+├── measurement_info.xlsx
 └── README.md
 
 ## Analysis workflow
