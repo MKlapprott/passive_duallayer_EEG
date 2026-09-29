@@ -19,7 +19,7 @@ elseif length(varargin) == 2
      meas = varargin{2};
 
     title_str = ['Channel RMS for condition: ', ...
-        measurement_info{meas, 'ID'}{1}];
+        measurement_info{meas, 'event'}{1}];
 
     nchans = 32;
 end
