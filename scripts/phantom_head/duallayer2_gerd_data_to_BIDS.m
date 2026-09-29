@@ -39,7 +39,8 @@ close all; clear all; clc;                                                      
 
 % set paths
 
-MAINPATH = 'R:\Ferris-Lab\mklapprott\eegl\';                                                        % adjust this path to your local environment!!!
+
+MAINPATH = 'Q:\Neuro\data\projects\all_gait\dual-layerCap\dual-layer-2024_25\eegl\';                                                        % adjust this path to your local environment!!!
 cd(MAINPATH)
 
 PATHIN = [MAINPATH, 'rawdata\gerd\'];                                                               % path to raw data (changed from task-Flanker!!!)
@@ -50,6 +51,8 @@ file_paths = file_paths(contains({file_paths.name}, 'stim'));
 
 measurement_info = readtable([MAINPATH, 'measurement_info.xlsx']);                                  % load initial info table
 measurement_info = measurement_info(9:end, :);
+
+eeglab
 
 %% prepade data to be stored as BIDS
 % Data was available as a .xdf, as this is not a supported file-format, data are saved as .set again.
@@ -83,9 +86,11 @@ for meas = 1:length(file_paths)
 
     if meas == 8 || meas == 9
         motion_data = readtable([PATHINSUB, file_name_mo], 'DecimalSeparator', ',');
+        motion_data = motion_data(:,1:3);
         motion_data.Properties.VariableNames = {'trans', 'pitch', 'roll'};
     else
         motion_data = readtable([PATHINSUB, file_name_mo]);
+        motion_data = motion_data(:,1:3);
         motion_data.Properties.VariableNames = {'trans', 'pitch', 'roll'};
     end
     cd(PATHOUT)

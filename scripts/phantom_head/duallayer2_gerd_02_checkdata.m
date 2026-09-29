@@ -43,7 +43,7 @@ close all; clear all; clc;                                                      
 
 % set paths
 
-MAINPATH = 'R:\Ferris-Lab\mklapprott\eegl\';                                                        % adjust this path to your local environment!!!
+MAINPATH = 'Q:\Neuro\data\projects\all_gait\dual-layerCap\dual-layer-2024_25\eegl\';               % adjust this path to your local environment!!!
 cd(MAINPATH)
 
 PATHIN = [MAINPATH, 'derivatives\gerd\duallayer2_gerd_00_Noise\'];                                  % path to noise data
@@ -60,8 +60,7 @@ if ~isfolder(CHECKPLOTS)                                                        
 end
 
 file_paths = dir(fullfile(PATHIN));                                                                 % get access to all folder names
-file_paths = file_paths(contains({file_paths.name}, 'stim'));
-
+file_paths = file_paths(3:11, :);
 
 % load parameters
 
@@ -110,13 +109,15 @@ for meas = 1:length(file_paths)
     % channel rejection ----------------------------------------------------------------------
 
     my_badchannels(EEG, measurement_info, meas)                                                 % illustrate bad channels
-    [EEG, Total_rej_1] = autoRejCh_func_CL(EEG,check.std_threshold);                            % Reject bad channels, 1st iteration
+    [EEG, Total_rej_1] = autoRejCh_func_CL(EEG,check.std_threshold, Noise_chans);                            % Reject bad channels, 1st iteration
        
     cleaningMethod = horzcat(check.cleaningMethod,check.autoChRejMethod);                       % define cleaning method
 
     
     MEASUREMENTS(meas).rej_chans = [Total_rej_1];                                               % save number rejected channels
-    MEASUREMENTS(meas).rej_chans_expl = 'EEG, EMG, Noise chans';
+    MEASUREMENTS(meas).rej_chans_expl = 'EEG, Noise chans';
+
+    EEG = rerefC2CN2NExt2Ext_func(EEG,1);
         
     % save data set & Figure            
     SUBCHECKPATH = [CHECKPATH, file_paths(meas).name, '\'];                                     % create path for subject
@@ -128,7 +129,7 @@ for meas = 1:length(file_paths)
     cd(SUBCHECKPATH);
     EEG = pop_saveset(EEG, 'filename', [EEG.setname, '_preproc-firstCheck_eeg'], 'filepath', SUBCHECKPATH);    % save data set
     cd(CHECKPLOTS);
-    saveas(gca, [file_paths(meas).name,  '-ChanRMS.png']);     % save plot
+    exportgraphics(gca, [file_paths(meas).name,  '-ChanRMS.png']);     % save plot
     close;
         
 end                                                                                                 % end loop across measurements

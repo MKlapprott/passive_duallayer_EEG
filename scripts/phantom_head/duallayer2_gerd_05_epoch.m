@@ -39,7 +39,7 @@ close all; clear all; clc;                                                      
 
 % set paths
 
-MAINPATH = 'R:\Ferris-Lab\mklapprott\eegl\';                                                        % adjust this path to your local environment!!!
+MAINPATH = 'Q:\Neuro\data\projects\all_gait\dual-layerCap\dual-layer-2024_25\eegl\';
 cd(MAINPATH)
 
 PATHOUT = [MAINPATH, 'derivatives\gerd\'];                                                          % path for data derivatives created on the way
@@ -69,6 +69,8 @@ for meas = 1:length(MEASUREMENTS)
     cd(SUBICAPATH)                                                                                  % set filepath
     files = dir(fullfile(SUBICAPATH, '*.set'));                                                     % get access to data sets
 
+    figure;
+
     for file = 1:length(files)
 
         file_name = files(file).name;
@@ -90,19 +92,25 @@ for meas = 1:length(MEASUREMENTS)
         EEG = pop_interp(EEG, EEG.urchanlocs , 'spherical');                                        % and interpolate them using urchanlocs        
 
     
-        refchans = strmatch('TP', {EEG.chanlocs.labels});                                           % find mastoid electrodes
-        EEG = pop_reref(EEG, refchans);                                                             % re-reference data to TP9 and TP10
+        %refchans = strmatch('TP', {EEG.chanlocs.labels});                                           % find mastoid electrodes
+        EEG = pop_reref(EEG, []);                                                             % re-reference data to TP9 and TP10
         EEG = pop_epoch( EEG, {erp.gerd_events{meas}}, [erp.FROM erp.TO], 'epochinfo', 'yes');      % cut SME-epochs from -.2 to 0.8 s
         EEG = pop_rmbase( EEG, [erp.FROM*1000 0] ,[]);                                              % baseline correction  
 
         nchan = EEG.nbchan;
     
-        EEG = pop_jointprob(EEG,1,[1:nchan] ,erp.REJ,erp.REJ,0,1,0,[],0);                           % artefact correction using joint probabilities
-        EEG = pop_rejkurt(EEG,1,[1:nchan] ,erp.REJ,erp.REJ,0,1,0,[],0);                             % artefact correction using channel kurtosis
+        %EEG = pop_jointprob(EEG,1,[1:nchan] ,erp.REJ,erp.REJ,0,1,0,[],0);                           % artefact correction using joint probabilities
+        %EEG = pop_rejkurt(EEG,1,[1:nchan] ,erp.REJ,erp.REJ,0,1,0,[],0);                             % artefact correction using channel kurtosis
         EEG.setname = [num2str(file), '_',MEASUREMENTS(meas).ID, '_', cond, '_epochs']; % new set name
         [ALLEEG EEG CURRENTSET] = eeg_store(ALLEEG, EEG);                                           % save as new set (ALLEEG)
 
         EEG = pop_saveset(EEG, 'filename', EEG.setname, 'filepath', SUBEPOSME);    % save data set
+
+        subplot(2,1,file)
+        plot(EEG.times, mean(EEG.data, 3));
+        title(EEG.setname, 'Interpreter','none')
+        ylim([-5 5])
+        sgtitle(MEASUREMENTS(meas).ID, 'Interpreter', 'none')
     
     end
 

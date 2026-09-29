@@ -38,7 +38,7 @@ close all; clear all; clc;                                                      
 
 % set paths --------------------------------------------------------------------------------------
 
-MAINPATH = 'R:\Ferris-Lab\mklapprott\eegl\';                                                        % adjust this path to your local environment!!!
+MAINPATH = 'Q:\data\projects\all_gait\dual-layerCap\dual-layer-2024_25\eegl\';               % adjust this path to your local environment!!!
 PATHOUT = [MAINPATH, 'derivatives\gerd\'];                                                           % path for data derivatives created on the way
 
 CHECKPATH = [PATHOUT, 'duallayer2_gerd_01_first-Check2\'];
@@ -59,13 +59,13 @@ load('df_params.mat')
 %% Start Processing
 
 
-for meas = 7:length(MEASUREMENTS)
+for meas = 1:length(MEASUREMENTS)
 
     SUBICCPATH = [ICCPATH, MEASUREMENTS(meas).ID, '\'];
     cd(SUBICCPATH)                                                                                  % set filepath
     files = dir(fullfile(SUBICCPATH, '*.set'));                                                     % get access to data sets
 
-    for file = 1:length(files)
+    for file = 1%:length(files)
 
         [ALLEEG EEG CURRENTSET ALLCOM] = eeglab;                                                    % start EEGLAB
 
@@ -94,28 +94,35 @@ for meas = 7:length(MEASUREMENTS)
         EEG = pop_runica(EEG, 'icatype', 'runica', 'extended',1,'interrupt','on');                  % run ICA
         EEG.setname = [MEASUREMENTS(meas).ID, '_preproc-ICAWeights'];                               % give set name
         [ALLEEG EEG CURRENTSET] = eeg_store(ALLEEG, EEG);                                           % save as new set
+
+        cd(ICAPATH)
+
+        pop_topoplot(EEG, 0, [1:6] ,['ICs scalp layer'],[3 2] ,0,'electrodes','on');
+        fig = ancestor(gca, 'figure');
+        exportgraphics(fig, [MEASUREMENTS(meas).ID, '-ICA-Topos_noiselayer.png']);                                % save plot
+        %close;
     
         % try out dipole fitting -----------------------------------------------------------------
 
-        EEG = pop_dipfit_settings( EEG, 'hdmfile', [MAINPATH,'standard_vol.mat'], ...               % dipole fitting settings (for trying out stuff)
-            'mrifile',[MAINPATH, 'standard_mri.mat'], 'chanfile',[MAINPATH, 'standard_1020.elc'],...
-            'coordformat','MNI');
-        
-        [ALLEEG EEG] = eeg_store(ALLEEG, EEG, CURRENTSET);
-        EEG = pop_dipfit_gridsearch(EEG, [1:length(EEG.chanlocs)] , df.gridA, df.gridB, df.gridC, 0.4);               % dipole fitting (for trying out stuff)
+        % EEG = pop_dipfit_settings( EEG, 'hdmfile', [MAINPATH,'standard_vol.mat'], ...               % dipole fitting settings (for trying out stuff)
+        %     'mrifile',[MAINPATH, 'standard_mri.mat'], 'chanfile',[MAINPATH, 'standard_1020.elc'],...
+        %     'coordformat','MNI');
+        % 
+        % [ALLEEG EEG] = eeg_store(ALLEEG, EEG, CURRENTSET);
+        % EEG = pop_dipfit_gridsearch(EEG, [1:length(EEG.chanlocs)] , df.gridA, df.gridB, df.gridC, 0.4);               % dipole fitting (for trying out stuff)
       
-        SUBICAPATH = [ICAPATH,MEASUREMENTS(meas).ID,'\'];
-        if ~isfolder(SUBICAPATH)                                                                    % if the path doesn't exist yet, create it
-            mkdir(SUBICAPATH)
-        end
-    
-        EEG.setname = [MEASUREMENTS(meas).ID, '_preproc-', cond, '_ICAWeights'];
-        EEG = pop_saveset(EEG, 'filename', EEG.setname, 'filepath', SUBICAPATH);                    % save data set
+        % SUBICAPATH = [ICAPATH,MEASUREMENTS(meas).ID,'\'];
+        % if ~isfolder(SUBICAPATH)                                                                    % if the path doesn't exist yet, create it
+        %     mkdir(SUBICAPATH)
+        % end
+        % 
+        % EEG.setname = [MEASUREMENTS(meas).ID, '_preproc-', cond, '_ICAWeights'];
+        % EEG = pop_saveset(EEG, 'filename', EEG.setname, 'filepath', SUBICAPATH);                    % save data set
     end                                                                                             % end loop across preproc conditions
 end                                                                                                 % end loop across measurements
 
 
-save([MAINPATH,'MEAS'],'MEASUREMENTS');  
+%save([MAINPATH,'MEAS'],'MEASUREMENTS');  
 
 
 %% end
