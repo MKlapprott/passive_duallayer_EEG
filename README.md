@@ -24,7 +24,8 @@ passive_duallayer_EEG/
 ├── resources/ # Electrode and head-model resources
 ├── participant_info.xlsx
 ├── measurement_info.xlsx
-└── README.md ```
+└── README.md
+```
 
 ## Analysis workflow
 The analysis scripts are organized according to the two experimental parts of the study.
