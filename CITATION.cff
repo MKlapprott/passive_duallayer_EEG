@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+title: "Combining Dual-Layer Electrodes with Wireless Head-Mounted Amplification for Motion-Artifact Suppression in Mobile EEG: Is there a Benefit?"
+type: software
+authors:
+  - family-names: "Klapprott"
+    given-names: "Melanie"
+  - family-names: "Hornig"
+  given-names: "Lars"
+  - family-names: "Ferris"
+  given-names: "Daniel P."
+  - family-names: "Debener"
+  given-names: "Stefan"
+date-released: 2026-09-29
+repository-code: "https://github.com/MKlapprott/passive_duallayer_EEG"
+license: MIT
