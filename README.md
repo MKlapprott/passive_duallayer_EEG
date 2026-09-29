@@ -14,17 +14,17 @@ EEG data were collected from 15 participants freely walking outdoors during a co
 Overall, the analyses did not provide evidence for a clear benefit of the dual-layer approach with iCanClean in this passive-electrode system. In the phantom-head experiment, imperfect isolation between the phantom head and second-layer electrode signals may have resulted in overcorrection. In the mobile EEG experiment, the relatively modest presence of motion artifacts may have limited the potential benefit of the dual-layer approach.
 
 ## Reopsitory Structure
-
+```
 passive_duallayer_EEG/
 ├── scripts/
-│ ├── participants/ # Analysis scripts for the mobile EEG experiment
-│ ├── phantom_head/ # Analysis scripts for the phantom-head experiment
-│ ├── statistical_analysis/ # Analysis scripts for the statistical evaluation of both experiments
-│ └── functions/ # Supporting MATLAB functions
+│   ├── participants/ # Analysis scripts for the mobile EEG experiment
+│   ├── phantom_head/ # Analysis scripts for the phantom-head experiment
+│   ├── statistical_analysis/ # Analysis scripts for the statistical evaluation of both experiments
+│   └── functions/ # Supporting MATLAB functions
 ├── resources/ # Electrode and head-model resources
 ├── participant_info.xlsx
 ├── measurement_info.xlsx
-└── README.md
+└── README.md ```
 
 ## Analysis workflow
 The analysis scripts are organized according to the two experimental parts of the study.
