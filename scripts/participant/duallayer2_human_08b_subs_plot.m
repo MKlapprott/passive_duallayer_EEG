@@ -10,7 +10,7 @@
 
 clear all; close all; clc;
 
-MAINPATH = 'R:\Ferris-Lab\mklapprott\eegl\';                                                        % adjust this path to your local environment!!!
+MAINPATH = 'Q:\Neuro\data\projects\all_gait\dual-layerCap\dual-layer-2024_25\eegl\';
 PATHOUT = [MAINPATH, 'derivatives\participants\'];
 EPOPATH = [PATHOUT, 'duallayer2_human_06_epo\plots\'];                                                    % path for epoched data 
 
@@ -26,9 +26,10 @@ P3_stop = 600;
 
 SUB(4) = [];
 
+eeglab
 %%
 
-for sub = 13
+for sub = 1:length(SUB)
     % data with ICC ------------------------------------------------------------------------------
 
     ICC_sta_stand = mean(ERP(sub).ICC_sta_stand_erp, 3);
@@ -297,8 +298,115 @@ for sub = 13
 end
 
 
-%%
+%% with minimally processed data added
 
+
+for sub = 1:length(SUB)
+
+    % ---------- ICC ----------
+    ICC_sta_stand = mean(ERP(sub).ICC_sta_stand_erp, 3);
+    ICC_tar_stand = mean(ERP(sub).ICC_tar_stand_erp, 3);
+    ICC_sta_walk  = mean(ERP(sub).ICC_sta_walk_erp, 3);
+    ICC_tar_walk  = mean(ERP(sub).ICC_tar_walk_erp, 3);
+
+    err_ICC_sta_stand = std(ERP(sub).ICC_sta_stand_erp, [], 3) / sqrt(size(ERP(sub).ICC_sta_stand_erp,3));
+    err_ICC_tar_stand = std(ERP(sub).ICC_tar_stand_erp, [], 3) / sqrt(size(ERP(sub).ICC_tar_stand_erp,3));
+    err_ICC_sta_walk  = std(ERP(sub).ICC_sta_walk_erp,  [], 3) / sqrt(size(ERP(sub).ICC_sta_walk_erp,3));
+    err_ICC_tar_walk  = std(ERP(sub).ICC_tar_walk_erp,  [], 3) / sqrt(size(ERP(sub).ICC_tar_walk_erp,3));
+
+    lo_ICC_sta_stand = ICC_sta_stand - err_ICC_sta_stand;
+    hi_ICC_sta_stand = ICC_sta_stand + err_ICC_sta_stand;
+    lo_ICC_tar_stand = ICC_tar_stand - err_ICC_tar_stand;
+    hi_ICC_tar_stand = ICC_tar_stand + err_ICC_tar_stand;
+
+    lo_ICC_sta_walk = ICC_sta_walk - err_ICC_sta_walk;
+    hi_ICC_sta_walk = ICC_sta_walk + err_ICC_sta_walk;
+    lo_ICC_tar_walk = ICC_tar_walk - err_ICC_tar_walk;
+    hi_ICC_tar_walk = ICC_tar_walk + err_ICC_tar_walk;
+
+
+    % ---------- Traditional ----------
+    trad_sta_stand = mean(ERP(sub).trad_sta_stand_erp, 3);
+    trad_tar_stand = mean(ERP(sub).trad_tar_stand_erp, 3);
+    trad_sta_walk  = mean(ERP(sub).trad_sta_walk_erp, 3);
+    trad_tar_walk  = mean(ERP(sub).trad_tar_walk_erp, 3);
+
+    err_trad_sta_stand = std(ERP(sub).trad_sta_stand_erp, [], 3) / sqrt(size(ERP(sub).trad_sta_stand_erp,3));
+    err_trad_tar_stand = std(ERP(sub).trad_tar_stand_erp, [], 3) / sqrt(size(ERP(sub).trad_tar_stand_erp,3));
+    err_trad_sta_walk  = std(ERP(sub).trad_sta_walk_erp,  [], 3) / sqrt(size(ERP(sub).trad_sta_walk_erp,3));
+    err_trad_tar_walk  = std(ERP(sub).trad_tar_walk_erp,  [], 3) / sqrt(size(ERP(sub).trad_tar_walk_erp,3));
+
+    lo_trad_sta_stand = trad_sta_stand - err_trad_sta_stand;
+    hi_trad_sta_stand = trad_sta_stand + err_trad_sta_stand;
+    lo_trad_tar_stand = trad_tar_stand - err_trad_tar_stand;
+    hi_trad_tar_stand = trad_tar_stand + err_trad_tar_stand;
+
+    lo_trad_sta_walk = trad_sta_walk - err_trad_sta_walk;
+    hi_trad_sta_walk = trad_sta_walk + err_trad_sta_walk;
+    lo_trad_tar_walk = trad_tar_walk - err_trad_tar_walk;
+    hi_trad_tar_walk = trad_tar_walk + err_trad_tar_walk;
+
+
+    % ---------- RAW ----------
+    raw_sta_stand = mean(ERP_raw(sub).sta_stand_erp, 3);
+    raw_tar_stand = mean(ERP_raw(sub).tar_stand_erp, 3);
+    raw_sta_walk  = mean(ERP_raw(sub).sta_walk_erp, 3);
+    raw_tar_walk  = mean(ERP_raw(sub).tar_walk_erp, 3);
+
+    err_raw_sta_stand = std(ERP_raw(sub).sta_stand_erp, [], 3) / sqrt(size(ERP_raw(sub).sta_stand_erp,3));
+    err_raw_tar_stand = std(ERP_raw(sub).tar_stand_erp, [], 3) / sqrt(size(ERP_raw(sub).tar_stand_erp,3));
+    err_raw_sta_walk  = std(ERP_raw(sub).sta_walk_erp,  [], 3) / sqrt(size(ERP_raw(sub).sta_walk_erp,3));
+    err_raw_tar_walk  = std(ERP_raw(sub).tar_walk_erp,  [], 3) / sqrt(size(ERP_raw(sub).tar_walk_erp,3));
+
+    lo_raw_sta_stand = raw_sta_stand - err_raw_sta_stand;
+    hi_raw_sta_stand = raw_sta_stand + err_raw_sta_stand;
+    lo_raw_tar_stand = raw_tar_stand - err_raw_tar_stand;
+    hi_raw_tar_stand = raw_tar_stand + err_raw_tar_stand;
+
+    lo_raw_sta_walk = raw_sta_walk - err_raw_sta_walk;
+    hi_raw_sta_walk = raw_sta_walk + err_raw_sta_walk;
+    lo_raw_tar_walk = raw_tar_walk - err_raw_tar_walk;
+    hi_raw_tar_walk = raw_tar_walk + err_raw_tar_walk;
+
+
+    x = ERP(1).times';
+    figure('Units','normalized','Position',[0.1 0.1 0.8 0.6],'Color','w');
+
+    ylims = [-5 25];
+
+    % ---------- STANDING ----------
+    plot_panel(2,3,1,x,ICC_sta_stand,ICC_tar_stand,lo_ICC_sta_stand,hi_ICC_sta_stand, ...
+        lo_ICC_tar_stand,hi_ICC_tar_stand, ...
+        ERP(sub).ICC_tar_stand_topo-ERP(sub).ICC_sta_stand_topo,ERP(1).chanlocs,'Standing – A',ylims);
+
+    plot_panel(2,3,2,x,trad_sta_stand,trad_tar_stand,lo_trad_sta_stand,hi_trad_sta_stand, ...
+        lo_trad_tar_stand,hi_trad_tar_stand, ...
+        ERP(sub).trad_tar_stand_topo-ERP(sub).trad_sta_stand_topo,ERP(1).chanlocs,'Standing – B',ylims);
+
+    plot_panel(2,3,3,x,raw_sta_stand,raw_tar_stand,lo_raw_sta_stand,hi_raw_sta_stand, ...
+        lo_raw_tar_stand,hi_raw_tar_stand, ...
+        ERP_raw(sub).tar_stand_topo-ERP_raw(sub).sta_stand_topo,ERP(1).chanlocs,'Standing – C',ylims);
+
+
+    % ---------- WALKING ----------
+    plot_panel(2,3,4,x,ICC_sta_walk,ICC_tar_walk,lo_ICC_sta_walk,hi_ICC_sta_walk, ...
+        lo_ICC_tar_walk,hi_ICC_tar_walk, ...
+        ERP(sub).ICC_tar_walk_topo-ERP(sub).ICC_sta_walk_topo,ERP(1).chanlocs,'Walking – A',ylims);
+
+    plot_panel(2,3,5,x,trad_sta_walk,trad_tar_walk,lo_trad_sta_walk,hi_trad_sta_walk, ...
+        lo_trad_tar_walk,hi_trad_tar_walk, ...
+        ERP(sub).trad_tar_walk_topo-ERP(sub).trad_sta_walk_topo,ERP(1).chanlocs,'Walking – B',ylims);
+
+    plot_panel(2,3,6,x,raw_sta_walk,raw_tar_walk,lo_raw_sta_walk,hi_raw_sta_walk, ...
+        lo_raw_tar_walk,hi_raw_tar_walk, ...
+        ERP_raw(sub).tar_walk_topo-ERP_raw(sub).sta_walk_topo,ERP(1).chanlocs,'Walking – C',ylims);
+
+    sgtitle(['P300 at Pz – ' SUB(sub).ID],'Interpreter','none');
+
+    cd(EPOPATH)
+    exportgraphics(gcf,[SUB(sub).ID '_ERPs_2x3.png'],'Resolution',300);
+    % close
+end
 
 
 

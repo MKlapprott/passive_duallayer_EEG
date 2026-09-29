@@ -12,7 +12,7 @@
 close all; clear all; clc;                                                                          % start with fresh workspace
 
 % set paths
-MAINPATH = 'R:\Ferris-Lab\mklapprott\eegl\';                                                        % adjust this path to your local environment!!!
+MAINPATH = 'Q:\Neuro\data\projects\all_gait\dual-layerCap\dual-layer-2024_25\eegl\';                % adjust this path to your local environment!!!
 cd(MAINPATH)
 
 PATHIN = [MAINPATH, 'rawdata\participants\'];                                                       % path to raw data
@@ -35,12 +35,13 @@ LPF1 = 6; LPF2 = 30; Order = 2; srate = 250;
 %%
 
 
-for sub = 1:length(SUB)
+for sub = 14:length(SUB)
 
     % special treatment for our special snowflakes -----------------------------------------------
 
     if strcmp(SUB(sub).ID, 'sub_03') || strcmp(SUB(sub).ID, 'sub_06') || strcmp(SUB(sub).ID, 'sub_07') || ...
-            strcmp(SUB(sub).ID, 'sub_09')  || strcmp(SUB(sub).ID, 'sub_11') || strcmp(SUB(sub).ID, 'sub_12')
+            strcmp(SUB(sub).ID, 'sub_09')  || strcmp(SUB(sub).ID, 'sub_11') || strcmp(SUB(sub).ID, 'sub_12') || ...
+            strcmp(SUB(sub).ID, 'sub_13') || strcmp(SUB(sub).ID, 'sub_15')
 
 
         disp('Something went wrong with the IMUs here, so we skip this :`)...')

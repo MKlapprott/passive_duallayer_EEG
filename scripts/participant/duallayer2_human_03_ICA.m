@@ -42,7 +42,7 @@ close all; clear all; clc;                                                      
 
 % set paths
 
-MAINPATH = 'R:\Ferris-Lab\mklapprott\eegl\';                                                        % adjust this path to your local environment!!!
+MAINPATH = 'Q:\Neuro\data\projects\all_gait\dual-layerCap\dual-layer-2024_25\eegl\';                                                        % adjust this path to your local environment!!!
 PATHOUT = [MAINPATH, 'derivatives\participants\'];                                                  % path for data derivatives created on the way
 
 ICCPATH = [PATHOUT, 'duallayer2_human_02_iCC\'];                                                     % path for iCanClean data 
@@ -62,7 +62,7 @@ REJ = 3;                                                                        
 %% Start Processing
 
 
-for sub = 14%:length(SUB)
+for sub = 3:length(SUB)
 
     SUBICCPATH = [ICCPATH, SUB(sub).ID, '\'];
     cd(SUBICCPATH)                                                                                  % set filepath
@@ -71,7 +71,7 @@ for sub = 14%:length(SUB)
     [ALLEEG EEG CURRENTSET ALLCOM] = eeglab;                                                        % start EEGLAB
 
 
-    for file = 1:length(files)
+    for file = 1%:length(files)
 
         file_name = files(file).name;                                                               % get current file name
         EEG = pop_loadset('filename',file_name,'filepath',SUBICCPATH);
@@ -102,14 +102,20 @@ for sub = 14%:length(SUB)
         EEG = pop_runica(EEG, 'icatype', 'runica', 'extended',1,'interrupt','on');                  % run ICA
         EEG.setname = [SUB(sub).ID, '_preproc-', cond, '-ICAWeights'];                              % give set name
         [ALLEEG EEG CURRENTSET] = eeg_store(ALLEEG, EEG);                                           % save as new set
+
+        pop_topoplot(EEG, 0, [1:6] ,'ICs scalp layer',[3 2] ,0,'electrodes','on');
+
+        cd(ICAPATH)
+        fig = ancestor(gca, 'figure');
+        exportgraphics(fig, [SUB(sub).ID, '-ICA-Topos_scalplayer.png']);                                % save plot
     
          
-        SUBICAPATH = [ICAPATH, SUB(sub).ID, '\'];
-        if ~isfolder(SUBICAPATH)                                                                    % if the path doesn't exist yet, create it
-            mkdir(SUBICAPATH)
-        end
+        % SUBICAPATH = [ICAPATH, SUB(sub).ID, '\'];
+        % if ~isfolder(SUBICAPATH)                                                                    % if the path doesn't exist yet, create it
+        %     mkdir(SUBICAPATH)
+        % end
     
-        EEG = pop_saveset(EEG, 'filename', EEG.setname, 'filepath', SUBICAPATH);                    % save data set
+        %EEG = pop_saveset(EEG, 'filename', EEG.setname, 'filepath', SUBICAPATH);                    % save data set
     end
 
 end

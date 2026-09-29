@@ -12,7 +12,7 @@
 close all; clear all; clc;                                                                          % start with fresh workspace
 
 % set paths
-MAINPATH = 'R:\Ferris-Lab\mklapprott\eegl\';                                                        % adjust this path to your local environment!!!
+MAINPATH = 'Q:\Neuro\data\projects\all_gait\dual-layerCap\dual-layer-2024_25\eegl\';                                                       % adjust this path to your local environment!!!
 cd(MAINPATH)
 
 PATHIN = [MAINPATH, 'rawdata\participants\'];                                                       % path to raw data
@@ -25,7 +25,7 @@ if ~isfolder(GAITPATH)                                                          
 end
 
 
-subs_info = readtable([MAINPATH, 'participant_info.xlsx']);
+subs_info = readtable([MAINPATH, 'participant_info_ana.xlsx']);
 subs = table2cell(subs_info(:,1));                                                                  % extract subject names
 conds = table2cell(subs_info(:,4:8));                                                               % extract conditions
 load('check.mat');
@@ -34,9 +34,9 @@ load('SUBS.mat');
 
 %% Start looking for gait events
 
-for sub = 13%:length(SUB) 
+for sub = 1:length(SUB) 
 
-    PATHINSUB = [PATHIN, subs{sub}, '\'];
+    PATHINSUB = [PATHIN, SUB(sub).ID, '\'];
     cd(PATHINSUB)
 
     files = dir(fullfile(PATHINSUB, '*.xdf'));                                                      % get access to data sets - xdf
@@ -44,7 +44,7 @@ for sub = 13%:length(SUB)
     % special treatment for our special snowflakes -----------------------------------------------
 
     if strcmp(subs{sub}, 'sub_03') || strcmp(subs{sub}, 'sub_06') || strcmp(subs{sub}, 'sub_07') || strcmp(subs{sub}, 'sub_11') ...
-            || strcmp(subs{sub}, 'sub_12') || strcmp(subs{sub}, 'sub_13')
+            || strcmp(subs{sub}, 'sub_12') || strcmp(subs{sub}, 'sub_13') || strcmp(subs{sub}, 'sub_15')
 
        disp('Something went wrong with the IMUs here, so we skip this :`)...')
         
@@ -182,7 +182,7 @@ for sub = 13%:length(SUB)
             figure;
             for idx = 1:6
                 subplot(6,1,idx)
-                plot(ALLEEG(idx+1).times, ALLEEG(idx+1).data(34,:));
+                plot(ALLEEG(idx).times, ALLEEG(idx).data(34,:));
 
             end
         

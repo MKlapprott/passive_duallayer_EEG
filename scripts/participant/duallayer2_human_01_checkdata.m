@@ -50,7 +50,7 @@
 close all; clear all; clc;                                                                          % start with fresh workspace
 
 % set paths
-MAINPATH = 'R:\Ferris-Lab\mklapprott\eegl\';                                                        % adjust this path to your local environment!!!
+MAINPATH = 'Q:\Neuro\data\projects\all_gait\dual-layerCap\dual-layer-2024_25\eegl\';                                                       % adjust this path to your local environment!!!
 cd(MAINPATH)
 
 PATHIN = [MAINPATH, 'rawdata\participants\'];                                                       % path to raw data (changed from task-Flanker!!!)
@@ -68,9 +68,9 @@ end
 
 file_paths = dir(fullfile(PATHIN));                                                                 % get access to all folder names
 file_paths = file_paths(contains({file_paths.name}, '_'));
+file_paths(1,:) = [];
 
-
-subs_info = readtable([MAINPATH, 'participant_info.xlsx']);
+subs_info = readtable([MAINPATH, 'participant_info_ana.xlsx']);
 subs = table2cell(subs_info(:,1));                                                                  % extract subject names
 conds = table2cell(subs_info(:,5:9));                                                               % extract conditions
 load('check.mat'); 
@@ -79,7 +79,7 @@ load('SUBS.mat');
 %% Start data check
 
 
-for sub = 14%:length(file_paths)
+for sub = 1:length(file_paths)
 
     [ALLEEG EEG CURRENTSET ALLCOM] = eeglab;                                                        % start EEGLAB
 
@@ -133,48 +133,43 @@ for sub = 14%:length(file_paths)
     [EEG.chanlocs(find(contains({EEG.chanlocs.labels}, 'Gyro'))).type] = deal('MISC');              % assign the MISC label to the IMU channels
     [EEG.chanlocs(find(contains({EEG.chanlocs.labels}, 'Quat'))).type] = deal('MISC');              % assign the MISC label to the IMU channels
 
+    EEG_chans = find(strcmpi('EEG',{EEG.chanlocs.type}));                               % get EEG channel indices
+    Noise_chans = find(strcmpi('Noise',{EEG.chanlocs.type}));                           % get Noise channel indices
+    IMU_chans = find(strcmpi('MISC',{EEG.chanlocs.type}));  
+
     EEG = pop_eegfiltnew(EEG, 'locutoff', check.HPF1);                                              % initial high-pass filter
-    EEG = pop_eegfiltnew(EEG, 'hicutoff', check.LPF);                                               % low-pass filter
+    EEG = pop_eegfiltnew(EEG, 'hicutoff', 60);                                                      % low-pass filter
 
     [ALLEEG, EEG, CURRENTSET] = eeg_store(ALLEEG, EEG);                                             % store data set
 
 
     EEG.urchanlocs = EEG.chanlocs(1:32);                                                            % save scalp chanlocs for later
 
-    % channel rejection 
-    my_badchannels(EEG, subs_info, sub)                                                             % illustrate channels RMS
-    
-    if strcmp(SUB(sub).ID, 'sub_13')
-        badEEGch = [find(strcmp({EEG.chanlocs.labels}, 'FT9')), find(strcmp({EEG.chanlocs.labels}, 'FT10')), ...
-            find(strcmp({EEG.chanlocs.labels}, 'TP9')), find(strcmp({EEG.chanlocs.labels}, 'TP10')), ...
-            find(strcmp({EEG.chanlocs.labels}, 'Fp1R'))];
-        Total_rej_1 = [find(strcmp({EEG.chanlocs.labels}, 'FT9')), find(strcmp({EEG.chanlocs.labels}, 'FT10')), ...
-            find(strcmp({EEG.chanlocs.labels}, 'TP9')), find(strcmp({EEG.chanlocs.labels}, 'TP10'))];
-        badNoiseCh = find(strcmp({EEG.chanlocs.labels}, 'Fp1R'));
-        EEG = pop_select( EEG,'nochannel', sort(badEEGch));
-    else
-        [EEG, Total_rej_1, badEEGch, badNoiseCh] = autoRejCh_func_CL(EEG,check.std_threshold);          % Reject bad channels
-    end
+    % channel rejection --------------------------------------------------------------------------
 
-    if strcmp(SUB(sub).ID, 'pilot_04') || strcmp(SUB(sub).ID, 'sub_05') || strcmp(SUB(sub).ID, 'sub_07') ...
-            || strcmp(SUB(sub).ID, 'sub_10') || strcmp(SUB(sub).ID, 'sub_11') || strcmp(SUB(sub).ID, 'sub_12') % here, C4 is a flat channel
-        badEEGch = find(strcmp({EEG.chanlocs.labels}, 'C4'));
-        EEG = pop_select( EEG,'nochannel', badEEGch);
-    end
-    
-    cleaningMethod = horzcat(check.cleaningMethod,check.autoChRejMethod);                           % define cleaning method
+    %my_badchannels(EEG, subs_info, sub)                                                             % illustrate channels RMS
 
+    EEG_scalp = pop_select( EEG,'nochannel', [Noise_chans, IMU_chans]);
+    EEG_scalp = clean_artifacts(EEG_scalp);
+    badChan_idx = find(EEG_scalp.etc.clean_channel_mask == 0);
+    if strcmp(SUB(sub).ID, 'sub_14')
+        badChan_idx = badChan_idx(2:end);
+    elseif strcmp(SUB(sub).ID, 'sub_15')
+        badChan_idx = [badChan_idx([1,3]); 33];
+    end
+    EEG = pop_select(EEG,'nochannel', badChan_idx);
+    
+    [EEG, Total_rej_1, badNoiseCh] = autoRejCh_func_CL(EEG,check.std_threshold, Noise_chans);       % Reject bad channels
+   
     EEG_chans = find(strcmpi('EEG',{EEG.chanlocs.type}));                                           % redefine scalp channels
     Noise_chans = find(strcmpi('Noise',{EEG.chanlocs.type}));                                       % redefine noise channels
 
-    EEG.badchans = sort(badEEGch);
+    EEG.badchans = sort([badChan_idx', badNoiseCh]);
 
     [ALLEEG, EEG, CURRENTSET] = eeg_store(ALLEEG, EEG);                                             % store data set
     
-    SUB(sub).rej_chans = Total_rej_1;                                                               % save number rejected channels
-    SUB(sub).rej_EEGchans = sort(badEEGch);                                                         % rejected channels
-    SUB(sub).rej_Noisechans = badNoiseCh;                                                           % rejected channels
-    SUB(sub).rej_chans_expl = 'EEG, EMG, Noise chans';
+    SUB(sub).rej_EEGchans = sort(badChan_idx);                                                         % rejected channels
+    SUB(sub).rej_Noisechans = sort(badNoiseCh);                                                           % rejected channels
         
     % save data set & Figure            
     SUBCHECKPATH = [CHECKPATH, file_paths(sub).name, '\'];                                          % create path for subject
@@ -185,9 +180,9 @@ for sub = 14%:length(file_paths)
 
     cd(SUBCHECKPATH);
     EEG = pop_saveset(EEG, 'filename', [EEG.setname, '_preproc-firstCheck_eeg'], 'filepath', SUBCHECKPATH);    % save data set
-    cd(CHECKPLOTS);
-    saveas(gca, [num2str(sub), '_', file_paths(sub).name, '-ChanRMS.png']);                         % save plot
-    close;
+    %cd(CHECKPLOTS);
+    %saveas(gca, [num2str(sub), '_', file_paths(sub).name, '-ChanRMS.png']);                         % save plot
+    %close;
 
 end                                                                                                 % end loop over subjects
 

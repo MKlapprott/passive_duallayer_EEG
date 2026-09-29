@@ -36,7 +36,7 @@ close all; clear all; clc;                                                      
 
 % set paths
 
-MAINPATH = 'R:\Ferris-Lab\mklapprott\eegl\';                                                        % adjust this path to your local environment
+MAINPATH = 'Q:\Neuro\data\projects\all_gait\dual-layerCap\dual-layer-2024_25\eegl\';                % adjust this path to your local environment
 PATHOUT = [MAINPATH, 'derivatives\participants\'];                                                  % path for data derivatives created on the way
 ICAPATH = [PATHOUT, 'duallayer2_human_03_iCA\'];                                                    % path for ICA data 
 
@@ -46,7 +46,7 @@ load('SUBS.mat');                                                               
 
 %%
 
-for sub = 14:length(SUB)
+for sub = 1:length(SUB)
 
     SUBICAPATH = [ICAPATH, SUB(sub).ID, '\'];
     cd(SUBICAPATH)                                                                                  % set filepath
@@ -78,11 +78,11 @@ for sub = 14:length(SUB)
         % save info from iclabel here! -> number of components with probability larger than 75%
         % 1 = brain, 2 = eye, 3 = muscle, 4 = line noise, 5 = other
 
-        c_brain = find(EEG.etc.ic_classification.ICLabel.classifications(:,1) > .75);
+        c_brain = find(EEG.etc.ic_classification.ICLabel.classifications(:,1) > .7);
         c_eye = find(EEG.etc.ic_classification.ICLabel.classifications(:,3) > .4);
-        c_muscle = find(EEG.etc.ic_classification.ICLabel.classifications(:,2) > .75);
-        c_line = find(EEG.etc.ic_classification.ICLabel.classifications(:,5) > .75);
-        c_others = find(EEG.etc.ic_classification.ICLabel.classifications(:,7) > .75);
+        c_muscle = find(EEG.etc.ic_classification.ICLabel.classifications(:,2) > .7);
+        c_line = find(EEG.etc.ic_classification.ICLabel.classifications(:,5) > .7);
+        c_others = find(EEG.etc.ic_classification.ICLabel.classifications(:,7) > .7);
         if file ==1
             COMPS_iCC(sub, 1) = length(c_brain);                                                    % brain
             COMPS_iCC(sub, 2) = length(c_eye);                                                      % eye
@@ -99,7 +99,9 @@ for sub = 14:length(SUB)
 
         end
 
-        pop_viewprops(EEG, 0, [1:size(EEG.data, 1)], {'freqrange', [2 80]}, {}, 1, 'ICLabel')       % for component properties
+        %pop_viewprops(EEG, 0, [1:size(EEG.data, 1)], {'freqrange', [2 80]}, {}, 1, 'ICLabel')       % for component properties
+
+        pop_topoplot(EEG, 0, [1:size(EEG.data, 1)] ,[SUB(sub).ID, '_', iCC_cond],[6 6] ,0,'electrodes','on');
         saveas(gca, [SUB(sub).ID, '_', iCC_cond, '-ICA-Topos.png']);                                % save plot
         close;
 
@@ -125,10 +127,12 @@ for sub = 14:length(SUB)
 end
 
 
+%%
+
 COMPS = vertcat(COMPS_trad, COMPS_iCC);
 types = {'ID','Pipeline', 'brain', 'eye', 'muscle', 'other'};
-pipelines = {'trad','trad','trad','trad','trad','trad','trad','trad','trad','trad','trad','trad','trad','trad',...
-    'ICC','ICC','ICC','ICC','ICC','ICC','ICC','ICC','ICC','ICC','ICC','ICC','ICC','ICC'}';
+pipelines = {'trad','trad','trad','trad','trad','trad','trad','trad','trad','trad','trad','trad','trad','trad','trad','trad',...
+    'ICC','ICC','ICC','ICC','ICC','ICC','ICC','ICC','ICC','ICC','ICC','ICC','ICC','ICC','ICC','ICC'}';
 
 ids = [{SUB.ID}';{SUB.ID}'];
 

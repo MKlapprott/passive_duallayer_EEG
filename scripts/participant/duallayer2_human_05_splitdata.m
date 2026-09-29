@@ -40,7 +40,7 @@
 
 clear all; close all; clc;
 
-MAINPATH = 'R:\Ferris-Lab\mklapprott\eegl\';                                                        % adjust this path to your local environment!!!
+MAINPATH = 'Q:\Neuro\data\projects\all_gait\dual-layerCap\dual-layer-2024_25\eegl\';                                                        % adjust this path to your local environment!!!
 PATHIN = [MAINPATH, 'rawdata\participants\'];
 PATHOUT = [MAINPATH, 'derivatives\participants\'];
 ICAPATH = [PATHOUT, 'duallayer2_human_03_iCA\'];                                                    % path for ICA data 
@@ -58,7 +58,7 @@ if ~isfolder(SPLITPATH)                                                         
 end
 
 cd(MAINPATH)
-subs_info = readtable([MAINPATH, 'participant_info.xlsx']);
+subs_info = readtable([MAINPATH, 'participant_info_ana.xlsx']);
 conds = table2cell(subs_info(:,5:9));                                                               % extract conditions
 load('check.mat');
 load('params.mat');
@@ -68,7 +68,7 @@ load('SUBS.mat');
 %% Start loading & re-running iCanClean + applying ICA weights
 
 
-for sub = 14%:length(SUB)
+for sub = 1:length(SUB)
 
     [ALLEEG, EEG, CURRENTSET, ALLCOM] = eeglab;                                                     % start EEGLAB
 
@@ -128,24 +128,26 @@ for sub = 14%:length(SUB)
             all_ends = find(strcmp({EEG.event.type}, '5 end_block'));
         
             EEG = pop_eegfiltnew(EEG, 'locutoff', check.HPF);                                       % high-pass filter
-            EEG = pop_eegfiltnew(EEG, 'hicutoff', 60);                                              % low-pass filter
+            EEG = pop_eegfiltnew(EEG, 'hicutoff', 30);                                              % low-pass filter
 
             EEG.urchanlocs = EEG.chanlocs(1:32);                                                    % save scalp chanlocs for later
         
             [ALLEEG, EEG, CURRENTSET] = eeg_store(ALLEEG, EEG);                                     % store data set
         
-            rej_chans = [SUB(sub).rej_EEGchans, SUB(sub).rej_Noisechans];
+            rej_chans = [SUB(sub).rej_EEGchans', SUB(sub).rej_Noisechans];
             EEG.badchans = SUB(sub).rej_EEGchans;
 
-            if strcmp(SUB(sub).ID, 'sub_05')
-                rej_chans = [find(strcmp({EEG.chanlocs.labels}, 'C4')), find(strcmp({EEG.chanlocs.labels}, 'F8')), ...
-                    find(strcmp({EEG.chanlocs.labels}, 'FT10'))];
-            elseif strcmp(SUB(sub).ID, 'sub_10')
-                rej_chans = [find(strcmp({EEG.chanlocs.labels}, 'C4')), find(strcmp({EEG.chanlocs.labels}, 'F7')), ...
-                    find(strcmp({EEG.chanlocs.labels}, 'F8'))];
-            end
+            % if strcmp(SUB(sub).ID, 'sub_05')
+            %     rej_chans = [find(strcmp({EEG.chanlocs.labels}, 'C4')), find(strcmp({EEG.chanlocs.labels}, 'F8')), ...
+            %         find(strcmp({EEG.chanlocs.labels}, 'FT10'))];
+            % elseif strcmp(SUB(sub).ID, 'sub_10')
+            %     rej_chans = [find(strcmp({EEG.chanlocs.labels}, 'C4')), find(strcmp({EEG.chanlocs.labels}, 'F7')), ...
+            %         find(strcmp({EEG.chanlocs.labels}, 'F8'))];
+            % end
 
             EEG = pop_select(EEG, 'nochannel', sort(rej_chans));
+
+            EEG = rerefC2CN2NExt2Ext_func(EEG,1);                                                           % re-reference
 
              % ICC -------------------------------------------------------------------------------
             
@@ -228,16 +230,16 @@ for sub = 14%:length(SUB)
         
             [ALLEEG, EEG, CURRENTSET] = eeg_store(ALLEEG, EEG);                                     % store data set
         
-            rej_chans = [SUB(sub).rej_EEGchans, SUB(sub).rej_Noisechans];
+            rej_chans = [SUB(sub).rej_EEGchans', SUB(sub).rej_Noisechans];
             EEG.badchans = SUB(sub).rej_EEGchans;
 
-            if strcmp(SUB(sub).ID, 'sub_05')
-                rej_chans = [find(strcmp({EEG.chanlocs.labels}, 'C4')), find(strcmp({EEG.chanlocs.labels}, 'F8')), ...
-                    find(strcmp({EEG.chanlocs.labels}, 'FT10'))];
-            elseif strcmp(SUB(sub).ID, 'sub_10')
-                rej_chans = [find(strcmp({EEG.chanlocs.labels}, 'C4')), find(strcmp({EEG.chanlocs.labels}, 'F7')), ...
-                    find(strcmp({EEG.chanlocs.labels}, 'F8'))];
-            end
+            % if strcmp(SUB(sub).ID, 'sub_05')
+            %     rej_chans = [find(strcmp({EEG.chanlocs.labels}, 'C4')), find(strcmp({EEG.chanlocs.labels}, 'F8')), ...
+            %         find(strcmp({EEG.chanlocs.labels}, 'FT10'))];
+            % elseif strcmp(SUB(sub).ID, 'sub_10')
+            %     rej_chans = [find(strcmp({EEG.chanlocs.labels}, 'C4')), find(strcmp({EEG.chanlocs.labels}, 'F7')), ...
+            %         find(strcmp({EEG.chanlocs.labels}, 'F8'))];
+            % end
 
 
             EEG = pop_select(EEG, 'nochannel', sort(rej_chans));
@@ -280,10 +282,10 @@ for sub = 14%:length(SUB)
 
 end
 
-%% split data 
+% split data 
 % load ICA cleaned no ICC and ICC and split the data from there
 
-for sub = 14%:length(SUB)
+for sub = 1:length(SUB)
 
     if strcmp(SUB(sub).ID, 'sub_03')
         disp('skipping this mess...')

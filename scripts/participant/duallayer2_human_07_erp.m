@@ -37,7 +37,7 @@
 
 clear all; close all; clc;
 
-MAINPATH = 'R:\Ferris-Lab\mklapprott\eegl\';                                                        % adjust this path to your local environment!!!
+MAINPATH = 'Q:\Neuro\data\projects\all_gait\dual-layerCap\dual-layer-2024_25\eegl\';
 PATHIN = [MAINPATH, 'rawdata\participants\'];
 PATHOUT = [MAINPATH, 'derivatives\participants\'];
 
@@ -48,11 +48,11 @@ EPOPATH = [PATHOUT, 'duallayer2_human_06_epo\'];                                
 cd(MAINPATH)
 load('SUBS.mat');
 load('erp.mat');
-load('ERP_info.mat');
+%load('ERP_info.mat');
 
 %% start collecting information for ERP metrics calculation
 
-for sub = 14%:length(SUB)
+for sub = 1:length(SUB)
 
     if strcmp(SUB(sub).ID, 'sub_03')
         disp('Skipping')
@@ -248,6 +248,8 @@ ERP(idx) = [];
 
 save([MAINPATH,'SUBS'],'SUB');                                                                      % save information
 save([MAINPATH,'ERP_info'],'ERP', '-v7.3');                                                                      % save information
+
+SUB(4) = [];
 
 T = table({SUB.ID}', cell2mat({ERP.ICC_sta_stand_peak})', cell2mat({ERP.ICC_tar_stand_peak})', cell2mat({ERP.ICC_sta_walk_peak})', ...
     cell2mat({ERP.ICC_tar_walk_peak})', cell2mat({ERP.trad_sta_stand_peak})', cell2mat({ERP.trad_tar_stand_peak})', ...

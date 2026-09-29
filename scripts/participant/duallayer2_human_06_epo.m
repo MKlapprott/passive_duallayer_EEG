@@ -34,7 +34,7 @@
 
 clear all; close all; clc;
 
-MAINPATH = 'R:\Ferris-Lab\mklapprott\eegl\';                                                        % adjust this path to your local environment!!!
+MAINPATH = 'Q:\Neuro\data\projects\all_gait\dual-layerCap\dual-layer-2024_25\eegl\';
 PATHIN = [MAINPATH, 'rawdata\participants\'];
 PATHOUT = [MAINPATH, 'derivatives\participants\'];
 
@@ -51,7 +51,7 @@ load('erp.mat');
 
 %% Start loading & epoching
 
-for sub = 14%:length(SUB)
+for sub = 1:length(SUB)
 
     if strcmp(SUB(sub).ID, 'sub_03')
         disp('skipping')
@@ -108,44 +108,58 @@ for sub = 14%:length(SUB)
             
                 EEG = pop_jointprob(EEG,1,[1:EEG.nbchan] ,erp.REJ,erp.REJ,0,1,0,[],0);                  % artefact correction using joint probabilities
                 EEG = pop_rejkurt(EEG,1,[1:EEG.nbchan] ,erp.REJ,erp.REJ,0,1,0,[],0);                    % artefact correction using channel kurtosis
+
+                rej_kurt(sub, file) = sum(EEG.reject.rejkurt);
                 
-                EEG.setname = ['dualLayer2_', num2str(sub), '_', SUB(sub).ID, '_', cond, '_run-', ...
-                    num2str(erp.runs(file)),'_', mocond, '-epo'];                                       % new set name
-                [ALLEEG EEG CURRENTSET] = eeg_store(ALLEEG, EEG);                                       % save as new set (ALLEEG)
-        
-                SUBEPOPATH = [EPOPATH, SUB(sub).ID, '\'];
-        
-                if ~isfolder(SUBEPOPATH)                                                                % if the path doesn't exist yet, create it
-                    mkdir(SUBEPOPATH)
-                end
-        
-                cd(SUBEPOPATH)
-                
-                 for e = 1:length(erp.EVENTS)                                                           % go through event names
-            
-                    EEG = pop_selectevent(ALLEEG(2), 'latency','-2<=2','type',...                       % select events
-                        {erp.EVENTS{e}},'deleteevents','off','deleteepochs','on','invertepochs','off');
-        
-                    [ALLEEG EEG CURRENTSET] = eeg_store(ALLEEG, EEG);                                   % save as new set (ALLEEG)
-                    EEG.setname = ['dualLayer2_', num2str(sub), '_', SUB(sub).ID, '_', cond, '_run-', ...
-                    num2str(erp.runs(file)),'_', mocond, '-epo-', erp.events_save{e}];                  % store as separate set
-                    EEG = pop_saveset(EEG, 'filename', [EEG.setname], 'filepath', SUBEPOPATH);          % save data set
-                
-                 end
-        
-                 SUB(sub).stas(file) = size(ALLEEG(3).data, 3);
-                 SUB(sub).tars(file) = size(ALLEEG(4).data, 3);
-                
-    
-            end
-        end
+        %         EEG.setname = ['dualLayer2_', num2str(sub), '_', SUB(sub).ID, '_', cond, '_run-', ...
+        %             num2str(erp.runs(file)),'_', mocond, '-epo'];                                       % new set name
+        %         [ALLEEG EEG CURRENTSET] = eeg_store(ALLEEG, EEG);                                       % save as new set (ALLEEG)
+        % 
+        %         SUBEPOPATH = [EPOPATH, SUB(sub).ID, '\'];
+        % 
+        %         if ~isfolder(SUBEPOPATH)                                                                % if the path doesn't exist yet, create it
+        %             mkdir(SUBEPOPATH)
+        %         end
+        % 
+        %         cd(SUBEPOPATH)
+        % 
+        %          for e = 1:length(erp.EVENTS)                                                           % go through event names
+        % 
+        %             EEG = pop_selectevent(ALLEEG(2), 'latency','-2<=2','type',...                       % select events
+        %                 {erp.EVENTS{e}},'deleteevents','off','deleteepochs','on','invertepochs','off');
+        % 
+        %             [ALLEEG EEG CURRENTSET] = eeg_store(ALLEEG, EEG);                                   % save as new set (ALLEEG)
+        %             EEG.setname = ['dualLayer2_', num2str(sub), '_', SUB(sub).ID, '_', cond, '_run-', ...
+        %             num2str(erp.runs(file)),'_', mocond, '-epo-', erp.events_save{e}];                  % store as separate set
+        %             EEG = pop_saveset(EEG, 'filename', [EEG.setname], 'filepath', SUBEPOPATH);          % save data set
+        % 
+        %          end
+        % 
+        %          SUB(sub).stas(file) = size(ALLEEG(3).data, 3);
+        %          SUB(sub).tars(file) = size(ALLEEG(4).data, 3);
+        % 
+        % 
+             end
+         end
     end
 end
 
 
-save([MAINPATH,'SUBS'],'SUB');                                                                      % save information
+%save([MAINPATH,'SUBS'],'SUB');                                                                      % save information
 
 
 %% end
 
 
+subs = {'pilot_06', 'sub_01', 'sub_02', 'sub_03', 'sub_04', 'sub_05', 'sub_06', 'sub_07', 'sub_08', ...
+    'sub_09', 'sub_10', 'sub_11', 'sub_12', 'sub_13', 'sub_14', 'sub_15'}';
+
+conds = ["ID" "ICC_run1" "ICC_run2" "ICC_run3" "ICC_run4" "noICC_run1" "noICC_run2" "noICC_run3" "noICC_run4"];
+
+
+T = array2table(rej_kurt);
+T = addvars(T, subs, 'Before', 1);
+
+T.Properties.VariableNames = conds;
+
+writetable(T, [PATHOUT, 'rej_epochs.csv']);
