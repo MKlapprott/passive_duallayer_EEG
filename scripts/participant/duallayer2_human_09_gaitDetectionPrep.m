@@ -1,84 +1,41 @@
 %% duallayer2_human_09_gaitDetectionPrep.m
 %
-% PURPOSE
-%   Prepare continuous EEG recordings for subsequent gait analysis by
-%   integrating right-foot IMU data, identifying task boundaries, and
-%   extracting the relevant experimental runs into separate EEGLAB datasets.
+%% Description:
+%   This script prepares participant EEG datasets for gait event detection
+%   by integrating right-foot IMU data from XDF recordings into the EEG
+%   datasets. It interpolates the IMU signals to the EEG sampling time
+%   points and extracts task-specific walking segments for downstream
+%   gait analysis.
 %
-% DATA
-%   - Raw recordings stored in XDF format.
-%   - Continuous EEG data that have undergone ICA correction.
-%   - Motion data recorded using Movella DOT inertial measurement units.
-%   - Right- and left-foot IMU streams are identified in the XDF recording;
-%     the right-foot stream is used for the gait analysis in this script.
-%   - Experimental task markers are used to identify the different runs.
+% Workflow:
+%   - Load participant information and raw XDF recordings
+%   - Identify EEG and right-foot IMU data streams
+%   - Load ICA-corrected EEG datasets
+%   - Extract right-foot accelerometer and gyroscope signals
+%   - Interpolate IMU data to the EEG time points
+%   - Append IMU signals to the EEG dataset and label the channels
+%   - Identify task-specific runs using event markers
+%   - Extract walking runs for gait analysis
+%   - Merge selected walking runs where required
+%   - Save prepared datasets for downstream gait detection
 %
-% PROCESSING OVERVIEW
-%   1. Load participant information, condition labels, and auxiliary files.
-%   2. Identify the relevant XDF recording and load its data streams.
-%   3. Identify the EEG, right-foot IMU, and left-foot IMU streams.
-%   4. Load the corresponding ICA-corrected continuous EEG dataset.
-%   5. Interpolate the six right-foot IMU channels onto the EEG time base
-%      so that the IMU and EEG data share a common sampling grid.
-%   6. Append the right-foot accelerometer and gyroscope signals as channels
-%      33–38 in the EEGLAB dataset.
-%   7. Identify task start and end markers to determine the boundaries of
-%      the experimental runs.
-%   8. Extract the individual runs, including dual-task runs and the
-%      walking-only run, using the event latencies.
-%   9. Use the experimental condition information to identify the runs
-%      relevant to gait analysis.
-%  10. Concatenate the appropriate dual-task walking runs into a combined
-%      walking dataset.
-%  11. Save the extracted and combined datasets for subsequent gait-event
-%      detection and walking-speed estimation.
+% Inputs:
+%   - Raw XDF recordings containing EEG and IMU streams
+%   - ICA-corrected EEG datasets
+%   - participant_info_ana.xlsx containing participant and condition information
+%   - SUBS.mat containing participant information
+%   - check.mat containing preprocessing information
 %
-% IMU INTEGRATION
-%   - The right-foot IMU stream provides three accelerometer and three
-%     gyroscope channels.
-%   - IMU timestamps are converted to milliseconds relative to the first
-%     IMU timestamp.
-%   - Linear interpolation is used to map the IMU data onto EEG.times.
-%   - Extrapolation is enabled for EEG time points outside the IMU time
-%     range; these extrapolated samples should be checked for validity.
-%   - The IMU channels are appended to the EEG data matrix and labelled
-%     according to sensor axis.
+% Outputs:
+%   - EEG datasets augmented with right-foot IMU channels
+%   - Extracted walking datasets for gait analysis
+%   - Merged walking datasets for selected task conditions
 %
-% CHANNEL ORGANIZATION
-%   Channels 33–35: right-foot accelerometer axes 1–3.
-%   Channels 36–38: right-foot gyroscope axes 1–3.
-%
-% RUN EXTRACTION
-%   - Task markers are identified from the EEGLAB event structure.
-%   - Individual runs are extracted using their corresponding start and
-%     end marker latencies, with small sample offsets around boundaries.
-%   - Participant-specific exceptions are included for recordings with
-%     known data or marker issues.
-%   - Run order and experimental condition labels are used to determine
-%     which runs should be combined for gait analysis.
-%   - The relevant dual-task walking runs are concatenated into a single
-%     dataset; the walking-only run is saved separately.
-%
-% OUTPUTS
-%   - EEGLAB datasets containing the appended right-foot IMU channels.
-%   - Separate datasets for the extracted experimental runs.
-%   - Combined datasets for the selected dual-task walking runs.
-%   - Output files saved in participant-specific directories under the
-%     gait-data derivatives folder.
-%
-% QUALITY CONTROL AND LIMITATIONS
-%   - Correct alignment depends on valid EEG and IMU timestamps and on
-%     consistent identification of the relevant XDF streams.
-%   - Interpolation and extrapolation can affect the IMU values at the
-%     edges of the recording; verify alignment and edge samples.
-%   - Run extraction depends on the presence, ordering, and validity of
-%     task markers.
-%   - Participant-specific exclusions and marker corrections should be
-%     documented and reviewed.
-%   - Verify that channel labels, channel indices, and sensor axes are
-%     consistent with the actual data layout.
-%   - Confirm that the selected runs correspond to the intended experimental
-%     conditions before using the output for gait analysis.
+% Dependencies:
+%   - EEGLAB
+%   - load_xdf
+%   - pop_select and pop_mergeset
+%   - participant_info_ana.xlsx, SUBS.mat, and check.mat
 %
 % Author: Melanie, 2025
 
