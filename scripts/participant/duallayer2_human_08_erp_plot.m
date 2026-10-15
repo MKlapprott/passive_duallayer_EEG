@@ -1,6 +1,40 @@
 %% duallayer2_human_08_erp_plot.m
 %
+% Description:
+%   This script calculates and visualizes grand-average P300 event-related
+%   potentials (ERPs) across participants during standing and walking. It
+%   compares standard and target stimulus responses across ICC-processed,
+%   traditionally processed, and minimally processed data, including ERP
+%   waveforms, standard error estimates, and scalp topographies.
 %
+% Workflow:
+%   - Load participant and ERP data
+%   - Exclude the specified participant from the ERP structures
+%   - Combine ERP data across participants
+%   - Calculate grand-average ERP waveforms and standard errors
+%   - Estimate target-response peak latencies within the P300 time window
+%   - Calculate average scalp topographies for each condition
+%   - Plot grand-average ERPs for standing and walking conditions
+%   - Compare ICC, traditional, and minimally processed data
+%   - Save the combined ERP figures
+%
+% Inputs:
+%   - ERP data from erp.mat
+%   - Minimally processed ERP data from ERP_raw_info.mat
+%   - SUBS.mat containing participant information
+%   - ERP_info.mat containing additional ERP-related information
+%
+% Outputs:
+%   - Grand-average ERP waveforms for standing and walking
+%   - Standard error estimates for standard and target responses
+%   - Average scalp topographies showing target-minus-standard differences
+%   - Grand-average ERP figures saved as PNG files
+%
+% Dependencies:
+%   - EEGLAB
+%   - topoplot
+%   - plot_erp_panel helper function
+%   - erp.mat, ERP_raw_info.mat, ERP_info.mat, and SUBS.mat
 %
 % Author: Melanie, Summer 2025
 
