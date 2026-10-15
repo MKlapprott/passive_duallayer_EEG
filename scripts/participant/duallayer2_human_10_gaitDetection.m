@@ -1,97 +1,35 @@
 %% duallayer2_human_10_gaitDetection.m
 %
-% PURPOSE
-%   Detect gait events from right-foot-mounted IMU recordings and estimate
-%   walking speed during hallway walking trials. The script processes
-%   EEGLAB datasets (.set) containing EEG and IMU data.
+%% Description:
+%   This script detects gait events in participant EEG recordings augmented
+%   with right-foot IMU data and estimates walking speed during walking
+%   tasks. It identifies walking intervals and turns, estimates the
+%   distance travelled, and detects heel-strike and toe-off events.
 %
-% DATA
-%   - IMU sensor mounted on the right foot.
-%   - Three accelerometer channels and three gyroscope channels.
-%   - Original IMU sampling frequency: 50 Hz; data are stored in datasets
-%     resampled to the EEG sampling frequency (currently 250 Hz).
-%   - Walking takes place along a 25 m outdoor hallway.
-%   - Walking tasks include dual-task and walking-only conditions.
+% Workflow:
+%   - Load participant EEG datasets containing right-foot IMU channels
+%   - Identify task-specific walking intervals using event markers
+%   - Detect active walking periods from accelerometer data
+%   - Detect turns from gyroscope data
+%   - Estimate walking distance and walking speed using hallway length
+%   - Detect gait events based on accelerometer signals
+%   - Add detected gait events to the EEG event structure
+%   - Save datasets containing the detected gait events
 %
-% PROCESSING OVERVIEW
-%   1. Load participant information and EEGLAB datasets.
-%   2. Select the IMU channels and filter the sensor signals.
-%   3. Estimate the active walking interval from accelerometer movement
-%      intensity, excluding inactive periods at the beginning and end.
-%   4. Retain walking blocks separated by short breaks within the detected
-%      overall walking interval.
-%   5. Detect turns from abrupt changes in the selected gyroscope signal.
-%   6. Apply a minimum temporal separation between detected turns to reduce
-%      duplicate detections.
-%   7. Estimate total walking distance from the number of detected turns
-%      and the known hallway length.
-%   8. Calculate average walking speed in km/h.
-%   9. Detect right heel strikes (RHS) and right toe-offs (RTO), validate
-%      gait-event sequences, and save the resulting EEGLAB datasets.
-%  10. Store gait-event statistics and speed estimates for later analysis.
+% Inputs:
+%   - EEG datasets with appended right-foot IMU channels
+%   - SUBS.mat containing participant information
+%   - Task event markers defining the walking intervals
 %
-% WALKING INTERVAL DETECTION
-%   - The accelerometer signals are high-pass filtered to reduce slow
-%     components, including much of the gravitational contribution.
-%   - Movement intensity is calculated from the combined three-axis
-%     acceleration signal using a moving RMS measure.
-%   - A threshold is used to distinguish active movement from low movement.
-%   - Short inactive gaps can be bridged to accommodate brief pauses.
-%   - The first and last detected active segments define the overall
-%     walking interval.
-%   - Detected boundaries should be visually inspected for quality control.
+% Outputs:
+%   - Estimated walking speed per participant
+%   - EEG datasets containing detected gait events (RHS and RTO)
+%   - Diagnostic plots of walking activity and turn detection
 %
-% TURN DETECTION AND SPEED ESTIMATION
-%   - Turns are identified from changes in the local mean of the selected
-%     gyroscope signal, rather than from isolated signal peaks.
-%   - A minimum time interval between detections reduces duplicate turns.
-%   - The hallway length is assumed to be 25 m.
-%   - Estimated distance is calculated as:
-%         distance = (number of detected turns + 1) * hallway length
-%   - Average speed is calculated as:
-%         speed (km/h) = distance (m) / duration (s) * 3.6
-%   - This distance formula assumes that the participant starts at one
-%     hallway endpoint, completes a full traverse between successive turns,
-%     and finishes after a final full traverse.
-%   - Speed estimates depend on accurate turn detection, correct trial
-%     boundaries, and the start/end-position assumptions. They should be
-%     checked against the sensor plots and trial protocol.
-%
-% GAIT-EVENT DETECTION
-%   - Candidate steps are identified from peaks in filtered acceleration.
-%   - Right heel strikes and right toe-offs are added as EEGLAB events.
-%   - Gait-event sequences are evaluated using validStrides().
-%   - Event detection depends on the sensor orientation, channel mapping,
-%     signal quality, and the selected thresholds.
-%
-% IMPORTANT PARAMETERS
-%   - Hallway length: 25 m.
-%   - Accelerometer high-pass cutoff: 0.3 Hz.
-%   - Movement-intensity window: 0.5 s.
-%   - Turn-detection smoothing window: 0.08 s.
-%   - Turn-detection comparison window: 0.25 s.
-%   - Minimum separation between turns: configurable in the script.
-%   - Gait-event filters and peak-detection thresholds are configurable.
-%
-% OUTPUTS
-%   - EEGLAB datasets with detected gait events.
-%   - Per-participant stride counts and validity statistics.
-%   - Estimated walking speed for each processed dataset.
-%   - Diagnostic plots for walking-interval and turn detection.
-%
-% LIMITATIONS AND QUALITY CONTROL
-%   - Resampling from 50 Hz to 250 Hz does not increase the original
-%     information content of the IMU signal.
-%   - Threshold-based walking and turn detection may require adjustment
-%     and visual verification across participants.
-%   - A gyroscope transition may reflect stopping or repositioning rather
-%     than a genuine hallway turn.
-%   - Including breaks in the duration estimates overall trial-average
-%     speed; excluding breaks estimates speed during active walking.
-%   - Counting turns does not independently establish the exact distance
-%     of partial first or last traverses.
-%   - Results should be interpreted as estimates, not direct measurements.
-%
+% Dependencies:
+%   - EEGLAB
+%   - SUBS.mat
+%   - EEG datasets with right-foot accelerometer and gyroscope data
 % Author: Melanie, 2026
 
 
