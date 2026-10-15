@@ -1,6 +1,41 @@
 %% duallayer2_human_08b_subs_plot.m
 %
+%% Description:
+%   This script visualizes participant-level P300 event-related potentials
+%   (ERPs) during standing and walking. It compares responses to standard
+%   and target stimuli across ICC-processed, traditionally processed, and
+%   raw or minimally processed data, including ERP waveforms, standard
+%   error estimates, and scalp topographies.
 %
+% Workflow:
+%   - Load participant information and ERP data structures
+%   - Exclude the specified participant from the first plotting section
+%   - Calculate mean ERP waveforms for standard and target stimuli
+%   - Calculate standard errors of the mean across observations
+%   - Plot ERP waveforms with shaded standard error regions
+%   - Add time-zero and zero-amplitude reference lines
+%   - Plot target-minus-standard scalp topographies
+%   - Compare ICC, traditional, and raw/minimally processed data
+%   - Generate separate figures for standing and walking conditions
+%   - Save participant-specific ERP figures as PNG files
+%
+% Inputs:
+%   - SUBS.mat containing participant information
+%   - erp.mat containing ERP waveforms and topographic data
+%   - ERP_info.mat containing additional ERP-related information
+%   - ERP_raw containing raw or minimally processed ERP data
+%
+% Outputs:
+%   - Participant-level ERP figures for standing and walking
+%   - Comparisons of standard and target stimulus responses
+%   - Scalp topographies showing target-minus-standard differences
+%   - PNG figures saved to the ERP plots directory
+%
+% Dependencies:
+%   - EEGLAB
+%   - topoplot
+%   - plot_panel helper function
+%   - erp.mat, ERP_info.mat, SUBS.mat, and ERP_raw data
 %
 % Author: Melanie, Summer 2025
 
